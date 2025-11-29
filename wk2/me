@@ -1,15 +1,12 @@
-#!/usr/bin/python3
 import pandas as pd
 import wbdata
 import datetime
-import requests
 import matplotlib.pyplot as plt
 
-def fetch_indicator_data(countries, indicators, start_year, end_year):
+def fetch_indicator_data(countries, indicators, start_year=2000, end_year=2023):
     """Fetches indicator data from the World Bank API."""
     all_data = []
 
-    print(all_data)
     for country in countries:
         for indicator_name, indicator_code in indicators.items():
             print(f"Fetching {indicator_code} for {country}...")
@@ -17,17 +14,9 @@ def fetch_indicator_data(countries, indicators, start_year, end_year):
                 data = wbdata.get_dataframe(
                     {indicator_code: indicator_name},
                     country=country,
-            #        date=(datetime.datetime(start_year, 1, 1), datetime.datetime(end_year, 12, 31)),
-                    #convert_date=True
-             #   ).reset_index()
-                date=(str(start_year), str(end_year))  # can also use integers
-            ).reset_index()
-
-            # Sometimes the API returns an empty DataFrame if data is missing
-                if data.empty:
-                    print(f"⚠️ No data returned for {country} - {indicator_code}")
-                    continue
-
+                    data_date=(datetime.datetime(start_year, 1, 1), datetime.datetime(end_year, 12, 31)),
+                    convert_date=True
+                ).reset_index()
                 data["iso3"] = country
                 all_data.append(data)
             except Exception as e:
@@ -108,22 +97,7 @@ def main():
         "Renewable energy consumption (% of total final energy consumption)": "EG.FEC.RNEW.ZS"
     }
 
-    """
-    indicators = {
-    "CO2 emissions (kt)": "EN.ATM.CO2E.PP.GD",
-    "Renewable energy consumption (% of total final energy consumption)": "EG.FEC.RNEW.ZS"
-}
-    """
-    start_year=2000
-    end_year=2023
-
-    url = (
-            f'https://api.worldbank.org/v2/country/{countries}/indicator/{indicators}'
-        f'?date={start_year}:{end_year}&format=json&per_page=1000'
-    )
-    r = requests.get(url)
-
-    raw = fetch_indicator_data(countries, indicators, start_year, end_year)
+    raw = fetch_indicator_data(countries, indicators)
     if raw.empty:
         print("❌ No data returned — exiting.")
         return
